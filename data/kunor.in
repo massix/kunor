@@ -1,0 +1,6 @@
+#!/bin/sh
+
+DATADIR="@prefix@/share/@PACKAGE_NAME@"
+
+echo "Starting @PACKAGE@ from ${DATADIR}"
+@MONO@ ${DATADIR}/@PACKAGE@
