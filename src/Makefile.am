@@ -1,4 +1,4 @@
-SUBDIRS = KunorClient KunorNNTP KunorSSH
+SUBDIRS = KunorSSH KunorNNTP KunorClient
 
 PROGRAM = Kunor.exe
 
