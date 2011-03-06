@@ -24,17 +24,26 @@ using GLib;
 
 namespace Kunor.Client {
 	public class MainWindow : Gtk.Window {
-		private Gtk.VBox mainContainer;
-		private Gtk.HBox middleContainer;
-
+		private Gtk.VBox main_container;
+		private Gtk.MenuBar main_menu;
+		private Gtk.HPaned middle_container;
+		private Gtk.Statusbar status_bar;
 
 		public MainWindow () : base ("Kunor") {
-			Resize (200, 200);
+			BuildMenuBar ();
 
-			mainContainer = new Gtk.VBox (true, 2);
-			mainContainer.PackStart (new Label ("Label one"));
-			mainContainer.PackStart (new Label ("Label two"));
-			mainContainer.ShowAll ();
+			main_container = new Gtk.VBox (false, 2);
+			middle_container = new Gtk.HPaned ();
+			status_bar = new Gtk.Statusbar ();
+
+			main_container.PackStart (main_menu, false, false, 0);
+
+			main_container.PackStart (middle_container);
+			middle_container.Add1 (new GroupListBox ());
+			middle_container.Add2 (new Gtk.Label ("Child 2"));
+
+			main_container.PackStart (status_bar, false, false, 0);
+			status_bar.Push (0, "Statusbar");
 
 			DestroyEvent += delegate (object o, DestroyEventArgs e) {
 				Console.WriteLine ("Catch Destroy Event");
@@ -46,8 +55,50 @@ namespace Kunor.Client {
 				Application.Quit ();
 			};
 
-			Add (mainContainer);
+			Add (main_container);
 
+			ShowAll ();
+		}
+
+		private void BuildMenuBar () {
+			main_menu = new Gtk.MenuBar ();
+
+			/* File menu */
+			Gtk.Menu file = new Gtk.Menu ();
+			Gtk.MenuItem file_item = new Gtk.MenuItem ("_File");
+			Gtk.MenuItem exit_item = new Gtk.MenuItem ("_Exit");
+			file.Append (exit_item);
+			file_item.Submenu = file;
+
+			exit_item.Activated += delegate (object o, EventArgs e) {
+				Application.Quit ();
+			};
+
+			main_menu.Append (file_item);
+		}
+	}
+
+	/* This widget holds the groups */
+	public class GroupListBox : Gtk.ScrolledWindow {
+		private NNTP.GroupList g_list;
+		private Gtk.VBox main_container;
+
+		public GroupListBox () : base () {
+			/* Set some default values for properties */
+			HscrollbarPolicy = Gtk.PolicyType.Automatic;
+			VscrollbarPolicy = Gtk.PolicyType.Automatic;
+			ResizeMode = Gtk.ResizeMode.Immediate;
+
+			g_list = new NNTP.GroupList ();
+			main_container = new Gtk.VBox (true, 0);
+			foreach (NNTP.Group s_group in g_list.list_container) {
+				Gtk.Label group_label = new Gtk.Label (s_group.name) {
+						Xalign = 0
+					};
+				main_container.PackStart (group_label);
+			}
+
+			AddWithViewport (main_container);
 			ShowAll ();
 		}
 	}

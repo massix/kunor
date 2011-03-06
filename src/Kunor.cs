@@ -33,13 +33,6 @@ namespace Kunor {
 			try {
 				NNTP.Connector mainConnector = NNTP.Connector.GetInstance ();
 				Client.MainWindow mw = new Client.MainWindow ();
-				NNTP.GroupList glist = new NNTP.GroupList ();
-				foreach (NNTP.Group g in glist.list_container) {
-					Utils.PrintDebug (Utils.TAG_DEBUG,
-									  "Got group: " + g.name + ", hi: " + g.hi.ToString () +
-									  ", low: " + g.low.ToString () + ", status: " + g.status);
-
-				}
 
 				Application.Run ();
 				mainConnector.Close ();
