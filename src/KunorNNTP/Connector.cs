@@ -17,25 +17,42 @@
  *
  */
 
+using Kunor;
 using System;
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
+using System.Collections.Generic;
 
 namespace Kunor.NNTP {
-	/* This class creates the first connection to the underlying NNTP protocol */
+	/* This Singleton class holds the connection to the underlying NNTP protocol */
 	public class Connector : TcpClient {
+		private static Connector instance;
 		private string lastMessage;
 		private NetworkStream stream;
 
 		/* Connect the socket */
-		public Connector () : base () {
+		private Connector () : base () {
 			Connect (Constants.SERVER_ADDRESS, Constants.SERVER_PORT);
 			stream = GetStream ();
 			if (ReadResponseLine ().Contains ("200"))
-				Console.WriteLine ("Connected");
+				Utils.PrintDebug (Utils.TAG_DEBUG, "Connector is connected");
 			else
 				throw new NNTPConnectorException ("Failed while authenticating to the NNTP server");
+		}
+
+		public static Connector GetInstance () {
+			Utils.PrintDebug (Utils.TAG_DEBUG, "Someone requested me!");
+			try {
+				if (instance == null)
+					instance = new Connector ();
+			}
+			catch (NNTPConnectorException e) {
+				Utils.PrintDebug (Utils.TAG_ERROR, "Could not connect to the NNTP server");
+				return null;
+			}
+
+			return instance;
 		}
 
 		/* This is the public method that writes and reads */
@@ -90,6 +107,47 @@ namespace Kunor.NNTP {
 			}
 
 			return enc.GetString (response, 0, count);
+		}
+	}
+
+	/* Class holding a single group */
+	public class Group {
+		public string name { get; private set; }
+		public int hi { get; private set; }
+		public int low { get; private set; }
+		public char status { get; private set; }
+
+		public Group (string g_name, int g_hi, int g_low, char g_status) {
+			name = g_name;
+			hi = g_hi;
+			low = g_low;
+			status = g_status;
+		}
+	}
+
+	/* Class which creates and holds the references to the groups */
+	public class GroupList {
+		public List<Group> list_container { get; private set; }
+
+		public GroupList () {
+			Connector instance = Connector.GetInstance ();
+			list_container = new List<Group> ();
+
+			/* Get the groups from the connector */
+			string a_groups = instance.WriteAndRead ("LIST");
+			string[] s_groups = a_groups.Split ('\n');
+
+			Utils.PrintDebug (Utils.TAG_DEBUG, "Beginning groups scan");
+
+			/* Parse it, filtering the CS groups */
+			for (int i = 0; i < s_groups.Length; i++) {
+				if (s_groups[i].Contains ("unibo.cs")) {
+					string[] group = s_groups[i].Split (' ');
+					list_container.Add (new Group (group[0], Int32.Parse (group[1]),
+												   Int32.Parse (group[2]), group[3][0]));
+					Utils.PrintDebug (Utils.TAG_DEBUG, "Created new Group " + group[0]);
+				}
+			}
 		}
 	}
 }

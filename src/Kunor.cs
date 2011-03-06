@@ -19,24 +19,38 @@
 
 using System;
 using Gtk;
-using Kunor.NNTP;
-using Kunor.Client;
+using Kunor;
 
 namespace Kunor {
 	public class Kunor {
 		public static void Main () {
 			Console.WriteLine ("Welcome to {0} version {1}",
 							   Utils.PACKAGE, Utils.VERSION);
+
+			Utils.PrintDebug (Utils.TAG_DEBUG, "DEBUG IS ON");
 			string[] result = new string[2];
 			Application.Init ();
 			try {
-				Connector mainConnector = new Connector ();
-				MainWindow mw = new MainWindow ();
+				NNTP.Connector mainConnector = NNTP.Connector.GetInstance ();
+				Client.MainWindow mw = new Client.MainWindow ();
+				NNTP.GroupList glist = new NNTP.GroupList ();
+				foreach (NNTP.Group g in glist.list_container) {
+					Utils.PrintDebug (Utils.TAG_DEBUG,
+									  "Got group: " + g.name + ", hi: " + g.hi.ToString () +
+									  ", low: " + g.low.ToString () + ", status: " + g.status);
+
+				}
 
 				Application.Run ();
 				mainConnector.Close ();
 			}
-			catch (NNTPConnectorException e) {
+
+			catch (NNTP.NNTPConnectorException e) {
+				/* TODO: Try to reconnect using different parameters */
+				Console.WriteLine (e.Message);
+			}
+
+			catch (Exception e) {
 				Console.WriteLine (e.Message);
 			}
 		}
