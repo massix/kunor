@@ -13,9 +13,7 @@ LIBS = 	-r:KunorNNTP/KunorNNTP.dll \
 
 CLEANFILES = ${PROGRAM}
 
-OS_FLAGS = -d:DEBUG_ON
-
-GMCS_FLAGS = -t:exe ${LIBS} ${OS_FLAGS}
+GMCS_FLAGS = -t:exe ${LIBS} ${OS_CFLAGS}
 
 all: ${SUBDIRS} ${PROGRAM}
 

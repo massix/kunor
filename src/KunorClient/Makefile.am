@@ -1,15 +1,17 @@
 CLIENT_SRCS = MainWindow.cs
 
-DEPS = ../KunorNNTP/KunorNNTP.dll
+DEPS = -r:../KunorNNTP/KunorNNTP.dll
 
 LIBRARY = KunorClient.dll
 librarydir = ${datadir}/${PACKAGE_NAME}/
 library_DATA = ${LIBRARY}
 CLEANFILES = ${LIBRARY}
 
+GMCS_FLAGS = -t:library ${DEPS} ${OS_CFLAGS} -out:KunorClient.dll
+
 all: ${LIBRARY}
 
 ${LIBRARY}: ${NNTP_SRCS}
-	${GMCS} -t:library -r:${DEPS} ${GTK_SHARP_2_LIBS} -out:KunorClient.dll ${CLIENT_SRCS}
+	${GMCS} ${GMCS_FLAGS} ${GTK_SHARP_2_LIBS} ${CLIENT_SRCS}
 
 EXTRA_DIST = ${CLIENT_SRCS}
