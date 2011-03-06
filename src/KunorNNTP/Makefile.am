@@ -9,3 +9,6 @@ all: ${LIBRARY}
 
 ${LIBRARY}: ${NNTP_SRCS}
 	${GMCS} -t:library -out:KunorNNTP.dll ${NNTP_SRCS}
+
+
+EXTRA_DIST = ${NNTP_SRCS}

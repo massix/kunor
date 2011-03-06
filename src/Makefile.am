@@ -22,5 +22,4 @@ all: ${SUBDIRS} ${PROGRAM}
 ${PROGRAM}: ${SUBDIRS} ${DIR_SRCS}
 	${GMCS} ${GMCS_FLAGS} ${DIR_SRCS} ${GTK_SHARP_2_LIBS}
 
-
-EXTRA_DIST = $(program_in_files:.cs.in=.cs)
+EXTRA_DIST = ${DIR_SRCS}

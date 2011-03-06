@@ -1,4 +1,4 @@
-AC_INIT([Kunor], [0.0.1], [gengarel@cs.unibo.it], [Kunor.exe])
+AC_INIT([Kunor], [0.0.1], [gengarel@cs.unibo.it], [Kunor])
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_MAINTAINER_MODE
 AM_INIT_AUTOMAKE

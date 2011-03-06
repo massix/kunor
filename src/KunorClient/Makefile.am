@@ -11,3 +11,5 @@ all: ${LIBRARY}
 
 ${LIBRARY}: ${NNTP_SRCS}
 	${GMCS} -t:library -r:${DEPS} ${GTK_SHARP_2_LIBS} -out:KunorClient.dll ${CLIENT_SRCS}
+
+EXTRA_DIST = ${CLIENT_SRCS}
