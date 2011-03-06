@@ -47,6 +47,7 @@ namespace Kunor.NNTP {
 				if (instance == null)
 					instance = new Connector ();
 			}
+
 			catch (NNTPConnectorException e) {
 				Utils.PrintDebug (Utils.TAG_ERROR, "Could not connect to the NNTP server");
 				return null;
@@ -110,6 +111,7 @@ namespace Kunor.NNTP {
 		}
 	}
 
+
 	/* Class holding a single group */
 	public class Group {
 		public string name { get; private set; }
@@ -132,19 +134,24 @@ namespace Kunor.NNTP {
 			Connector instance = Connector.GetInstance ();
 
 			/* Get the groups from the connector */
-			string a_groups = instance.WriteAndRead ("LIST");
+			string a_groups = instance.WriteAndRead ("LIST ACTIVE unibo.cs.*");
 			string[] s_groups = a_groups.Split ('\n');
 
-			Utils.PrintDebug (Utils.TAG_DEBUG, "Beginning groups scan");
+			if (s_groups[0].StartsWith ("215")) {
+				Utils.PrintDebug (Utils.TAG_DEBUG, "Beginning groups scan");
 
-			/* Parse it, filtering the CS groups */
-			for (int i = 0; i < s_groups.Length; i++) {
-				if (s_groups[i].Contains ("unibo.cs")) {
+				/* Parse it, filtering the CS groups (redundant control) */
+				for (int i = 1; i < s_groups.Length; i++) {
 					string[] group = s_groups[i].Split (' ');
 					Add (new Group (group[0], Int32.Parse (group[1]),
-												   Int32.Parse (group[2]), group[3][0]));
+									Int32.Parse (group[2]), group[3][0]));
 					Utils.PrintDebug (Utils.TAG_DEBUG, "Created new Group " + group[0]);
 				}
+			}
+
+			else {
+				Utils.PrintDebug (Utils.TAG_ERROR, "Error while retrieving groups list");
+				throw new NNTPConnectorException ("Error while retrieving groups list");
 			}
 		}
 	}
