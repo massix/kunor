@@ -17,6 +17,7 @@
  *
  */
 
+using System.Diagnostics;
 using System;
 using Gtk;
 
@@ -29,5 +30,15 @@ namespace Kunor {
 		public const string ICONDIR = "@prefix@/share/icons/hicolor/scalable/apps";
 		public const string ICONNAME = "kunor.svg";
 		public const string VERSION = "@PACKAGE_VERSION@";
+
+		public const string TAG_DEBUG = "DEBUG";
+		public const string TAG_WARNING = "WARNING";
+		public const string TAG_ERROR = "ERROR";
+
+		/* Conditional debug printing */
+		[Conditional ("DEBUG_ON")]
+		public static void PrintDebug (string tag, string message) {
+			System.Console.WriteLine ("[{0}] {1}", tag, message);
+		}
 	}
 }
