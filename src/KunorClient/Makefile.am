@@ -1,4 +1,4 @@
-CLIENT_SRCS = MainWindow.cs
+CLIENT_SRCS = MainWindow.cs GroupListBox.cs
 
 DEPS = -r:../KunorNNTP/KunorNNTP.dll
 
