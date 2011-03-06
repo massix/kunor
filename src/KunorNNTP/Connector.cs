@@ -126,12 +126,10 @@ namespace Kunor.NNTP {
 	}
 
 	/* Class which creates and holds the references to the groups */
-	public class GroupList {
-		public List<Group> list_container { get; private set; }
+	public class GroupList : System.Collections.Generic.List<Group> {
 
-		public GroupList () {
+		public GroupList () : base () {
 			Connector instance = Connector.GetInstance ();
-			list_container = new List<Group> ();
 
 			/* Get the groups from the connector */
 			string a_groups = instance.WriteAndRead ("LIST");
@@ -143,7 +141,7 @@ namespace Kunor.NNTP {
 			for (int i = 0; i < s_groups.Length; i++) {
 				if (s_groups[i].Contains ("unibo.cs")) {
 					string[] group = s_groups[i].Split (' ');
-					list_container.Add (new Group (group[0], Int32.Parse (group[1]),
+					Add (new Group (group[0], Int32.Parse (group[1]),
 												   Int32.Parse (group[2]), group[3][0]));
 					Utils.PrintDebug (Utils.TAG_DEBUG, "Created new Group " + group[0]);
 				}
