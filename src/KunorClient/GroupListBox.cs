@@ -21,6 +21,7 @@ using System;
 using Kunor.NNTP;
 using Gtk;
 using GLib;
+using Pango;
 
 namespace Kunor.Client {
 	/* This widget holds the groups */
@@ -29,7 +30,9 @@ namespace Kunor.Client {
 		private Gtk.TreeView groups_view;
 		private Gtk.ListStore groups_store;
 		private Client.MainWindow partof;
-
+		private enum Columns {
+			COL_NAME, COL_UNREAD
+		};
 
 		public GroupListBox (MainWindow partof) : base () {
 			/* Set some default values for properties */
@@ -49,8 +52,23 @@ namespace Kunor.Client {
 
 			groups_view.Model = groups_store;
 			groups_view.HeadersVisible = true;
-			groups_view.AppendColumn ("Name", new Gtk.CellRendererText (), "text", 0);
-			groups_view.AppendColumn ("Unread", new Gtk.CellRendererText (), "text", 1);
+
+			Gtk.CellRendererText cell_renderer = new Gtk.CellRendererText () {
+				Editable = false,
+				Ellipsize = Pango.EllipsizeMode.None,
+				WrapWidth = -1
+			};
+
+			/* First column is resizable and gets extra space */
+			Gtk.TreeViewColumn to_be_set;
+			groups_view.AppendColumn ("Name", cell_renderer, "text", (int) Columns.COL_NAME);
+			to_be_set = groups_view.GetColumn ((int) Columns.COL_NAME);
+			to_be_set.Expand = true;
+
+			/* Second column is not resizable and doesn't get extra space */
+			groups_view.AppendColumn ("Unread", cell_renderer, "text", (int) Columns.COL_UNREAD);
+			to_be_set = groups_view.GetColumn ((int) Columns.COL_UNREAD);
+			to_be_set.Expand = false;
 
 			/* Main event linked to the tree view */
 			groups_view.RowActivated += delegate (object o, RowActivatedArgs args) {
@@ -59,7 +77,7 @@ namespace Kunor.Client {
 
 				if (groups_store.GetIter (out iter, args.Path)) {
 					Utils.PrintDebug (Utils.TAG_DEBUG, "Selected NG: " +
-									  groups_store.GetValue (iter, 0));
+									  groups_store.GetValue (iter, (int) Columns.COL_NAME));
 				}
 
 				else
