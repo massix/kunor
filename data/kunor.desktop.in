@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Kunor
+GenericName=Kunor
+Comment=Kunor\'s Unversity NNTP Opensource Reader
+TryExec=kunor
+Exec=kunor
+Terminal=false
+Type=Application
+Icon=kunor
+Categories=GTK;Network;

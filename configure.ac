@@ -45,6 +45,7 @@ AC_CONFIG_FILES([
 	src/KunorNNTP/Makefile
 	data/Makefile
 	data/kunor
+	data/kunor.desktop
 	src/KunorSSH/Makefile
 	src/KunorClient/Makefile])
 
