@@ -76,8 +76,13 @@ namespace Kunor.Client {
 				Utils.PrintDebug (Utils.TAG_DEBUG, "Double clicked row: " + args.Path);
 
 				if (groups_store.GetIter (out iter, args.Path)) {
-					Utils.PrintDebug (Utils.TAG_DEBUG, "Selected NG: " +
-									  groups_store.GetValue (iter, (int) Columns.COL_NAME));
+					string groupname = (string) groups_store.GetValue (iter, (int) Columns.COL_NAME);
+					Utils.PrintDebug (Utils.TAG_DEBUG, "Selected NG: " + groupname);
+
+					NNTP.Group selected = g_list.FindByName (groupname.Replace ("u.c.", "unibo.cs."));
+					Utils.PrintDebug (Utils.TAG_DEBUG, "Got: " + selected.name);
+
+					NNTP.MessageList g_messagelist = selected.GetMessages ();
 				}
 
 				else
