@@ -60,12 +60,13 @@ namespace Kunor.NNTP {
 		public string WriteAndRead (string message) {
 			string response = "";
 			string tmp = "";
-			lastMessage = message + "\r\n";
+			lastMessage = message + " \r\n";
 			Write ();
 			while (true) {
 				tmp = ReadResponseLine ();
+				Utils.PrintDebug (Utils.TAG_DEBUG, "Response line contains: " + tmp);
 				/* Error occured while querying */
-				if (tmp.Contains ("500 What"))
+				if (tmp.StartsWith ("500 What") || tmp.StartsWith ("501 Syntax"))
 					break;
 
 				/* End of Line */
@@ -76,6 +77,16 @@ namespace Kunor.NNTP {
 			}
 
 			return response.Trim ();
+		}
+
+		/* Function to switch working group, returns true on success, false otherwise */
+		public bool SwitchGroup (string groupname) {
+			lastMessage = "GROUP " + groupname + "\r\n";
+			Write ();
+			string result = ReadResponseLine ();
+			if (result.StartsWith ("211"))
+				return true;
+			return false;
 		}
 
 		/* Write something to the server */
@@ -89,7 +100,7 @@ namespace Kunor.NNTP {
 		/* Reads the received response */
 		private string ReadResponseLine () {
 			UTF8Encoding enc = new UTF8Encoding ();
-			byte[] response = new byte[1024];
+			byte[] response = new byte[2048];
 			int count = 0;
 
 			/* Cycle the response bytes until there's nothing left or a newline is encountered */
@@ -102,12 +113,82 @@ namespace Kunor.NNTP {
 
 					if (r_buff[0] == '\n')
 						break;
+
+					if (count > 2047)
+						break;
 				}
+
 				else
 					break;
 			}
 
 			return enc.GetString (response, 0, count);
+		}
+	}
+
+
+	/* Class holding a single message */
+	public class Message {
+		/* used to retrieve the message from the listgroup NNTP command */
+		private int int_msg_id;
+
+		/* used when referencing a new post */
+		private string str_msg_id;
+		private string from;
+		private string subject;
+		private string date;
+		private int lines;
+		private string user_agent;
+
+		/* Create a new message from the given headers */
+		public Message (string header) {
+			string[] headers_line = header.Split ('\n');
+
+			/* Parsing of the headers */
+			for (int i = 0; i < headers_line.Length; i++) {
+				if (headers_line[i].StartsWith ("From: "))
+					from = headers_line[i];
+
+				else if (headers_line[i].StartsWith ("Date: "))
+					date = headers_line[i];
+
+				else if (headers_line[i].StartsWith ("Message-ID: "))
+					str_msg_id = headers_line[i];
+
+				else if (headers_line[i].StartsWith ("User-Agent: "))
+					user_agent = headers_line[i];
+
+				else if (headers_line[i].StartsWith ("Subject: "))
+					subject = headers_line[i];
+
+				else
+					Utils.PrintDebug (Utils.TAG_DEBUG, "Header not known: " + headers_line[i]);
+			}
+
+			Utils.PrintDebug (Utils.TAG_DEBUG, "Got new message from: " + from);
+		}
+	}
+
+
+	/* Class which creates and holds the references to the messages */
+	public class MessageList : System.Collections.Generic.List<Message> {
+
+		/* Build a new MessageList referred to the given newsgroup */
+		public MessageList (string groupname) {
+			Connector instance = Connector.GetInstance ();
+
+			/* Switch to the given group or throw exception if it didn't exist */
+			if (!instance.SwitchGroup (groupname))
+				throw new NNTPConnectorException ("Group doesn't exist");
+
+			/* Get the messages */
+			string message_resp = instance.WriteAndRead ("LISTGROUP " + groupname);
+			string[] messages = message_resp.Split ('\n');
+
+			for (int i = 1; i < messages.Length; i++) {
+				string headers = instance.WriteAndRead ("HEAD " + messages[i].Trim ());
+				Add (new Message (headers));
+			}
 		}
 	}
 
@@ -118,12 +199,22 @@ namespace Kunor.NNTP {
 		public int hi { get; private set; }
 		public int low { get; private set; }
 		public char status { get; private set; }
+		private MessageList messages;
 
+		/* Build a new group */
 		public Group (string g_name, int g_hi, int g_low, char g_status) {
 			name = g_name;
 			hi = g_hi;
 			low = g_low;
 			status = g_status;
+		}
+
+		/* Get the MessageList of that group */
+		public MessageList GetMessages () {
+			if (messages == null)
+				messages = new MessageList (name);
+
+			return messages;
 		}
 	}
 
@@ -153,6 +244,13 @@ namespace Kunor.NNTP {
 				Utils.PrintDebug (Utils.TAG_ERROR, "Error while retrieving groups list");
 				throw new NNTPConnectorException ("Error while retrieving groups list");
 			}
+		}
+
+		/* Find a group by its name */
+		public Group FindByName (string name) {
+			return Find (delegate (Group g) {
+					return (g.name == name);
+				});
 		}
 	}
 }
