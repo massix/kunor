@@ -46,6 +46,7 @@ AC_CONFIG_FILES([
 	data/Makefile
 	data/kunor
 	data/kunor.desktop
+	src/Utils.cs
 	src/KunorSSH/Makefile
 	src/KunorClient/Makefile])
 

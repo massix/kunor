@@ -19,3 +19,4 @@ missing
 *.dll
 data/kunor
 kunor.desktop
+Utils.cs

@@ -3,9 +3,10 @@ SUBDIRS = KunorSSH KunorNNTP KunorClient
 PROGRAM = Kunor.exe
 
 programdir = ${datadir}/${PACKAGE_NAME}
+program_in_files = Utils.cs.in
 program_DATA = ${PROGRAM}
 
-DIR_SRCS = Kunor.cs
+DIR_SRCS = Kunor.cs $(program_in_files:.cs.in=.cs)
 LIBS = KunorNNTP/KunorNNTP.dll,KunorClient/KunorClient.dll
 CLEANFILES = ${PROGRAM}
 

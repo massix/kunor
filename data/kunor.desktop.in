@@ -2,7 +2,7 @@
 Encoding=UTF-8
 Name=Kunor
 GenericName=Kunor
-Comment=Kunor\'s Unversity NNTP Opensource Reader
+Comment=KUNOR Unversity NNTP Opensource Reader
 TryExec=kunor
 Exec=kunor
 Terminal=false
