@@ -40,11 +40,11 @@ namespace Kunor {
 
 			catch (NNTP.NNTPConnectorException e) {
 				/* TODO: Try to reconnect using different parameters */
-				Console.WriteLine (e.Message);
+				Console.WriteLine ("NNTPConnectorException: " + e.Message);
 			}
 
 			catch (Exception e) {
-				Console.WriteLine (e.Message);
+				Console.WriteLine ("Exception: " + e.Message);
 			}
 		}
 	}
