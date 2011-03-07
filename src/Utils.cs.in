@@ -30,6 +30,8 @@ namespace Kunor {
 		public const string ICONDIR = "@prefix@/share/icons/hicolor/scalable/apps";
 		public const string ICONNAME = "kunor.svg";
 		public const string VERSION = "@PACKAGE_VERSION@";
+		public const string SSH = "@SSH@";
+		public const string SSH_KEYGEN = "@SSH_KEYGEN@";
 
 		public const string TAG_DEBUG = "DEBUG";
 		public const string TAG_WARNING = "WARNING";

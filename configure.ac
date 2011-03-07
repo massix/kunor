@@ -22,8 +22,20 @@ if test "x$MONO" = "xno"; then
    AC_MSG_ERROR([Can't find mono in your path!])
 fi
 
+AC_PATH_PROG(SSH, ssh, no)
+if test "x$SSH" = "xno"; then
+   AC_MSG_ERROR([Can't find ssh in your path!])
+fi
+
+AC_PATH_PROG(SSH_KEYGEN, ssh-keygen, no)
+if test "x$SSH_KEYGEN" = "xno"; then
+	AC_MSG_ERROR([Can't find ssh-keygen in your path!])
+fi
+
 AC_SUBST(MONO)
 AC_SUBST(GMCS)
+AC_SUBST(SSH)
+AC_SUBST(SSH_KEYGEN)
 
 dnl -------------------
 dnl check for libraries
