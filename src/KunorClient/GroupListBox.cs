@@ -35,7 +35,7 @@ namespace Kunor.Client {
 		};
 
 		/* Event that will be triggered when the Object has finished receiving the messages for a group */
-		public delegate void GotMessagesEventHandler (System.Object sender, Group group);
+		public delegate void GotMessagesEventHandler (System.Object sender, NNTP.MessageList msg_list);
 		public event GotMessagesEventHandler OnGotMessages;
 
 		/* Event that will be triggered when the Object starts receiving the messages for a group */
@@ -100,7 +100,7 @@ namespace Kunor.Client {
 
 							/* Send the Event if the object has been referenced somewhere */
 							if (OnGotMessages != null)
-								OnGotMessages (this, selected);
+								OnGotMessages (this, g_messagelist);
 						}).Start ();
 				}
 

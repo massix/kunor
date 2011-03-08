@@ -29,6 +29,7 @@ namespace Kunor.Client {
 		private Gtk.HPaned middle_container;
 		private Gtk.Statusbar status_bar;
 		private Client.GroupListBox group_list_box;
+		private Client.MessageListBox message_list_box;
 
 		/* Builds up the main GUI */
 		public MainWindow () : base ("Kunor") {
@@ -38,23 +39,25 @@ namespace Kunor.Client {
 			middle_container = new Gtk.HPaned ();
 			status_bar = new Gtk.Statusbar ();
 			group_list_box = new Client.GroupListBox ();
+			message_list_box = new Client.MessageListBox ();
 
 			main_container.PackStart (main_menu, false, false, 0);
 
 			main_container.PackStart (middle_container);
 			middle_container.Add1 (group_list_box);
-			middle_container.Add2 (new Gtk.Label ("Child 2"));
+			middle_container.Add2 (message_list_box);
 
 			group_list_box.OnStartMessages += delegate (object o, NNTP.Group g) {
-				Utils.PrintDebug (Utils.TAG_DEBUG, "Started receiving messages for group " + g.name);
+				status_bar.Push (0, "Receiving messages for group " + g.name);
 			};
 
-			group_list_box.OnGotMessages += delegate (object o, NNTP.Group g) {
-				Utils.PrintDebug (Utils.TAG_DEBUG, "Got messages for group " + g.name);
+			group_list_box.OnGotMessages += delegate (object o, NNTP.MessageList m) {
+				message_list_box.SwitchMessageList (m);
+				status_bar.Push (0, "Done!");
 			};
 
 			main_container.PackStart (status_bar, false, false, 0);
-			status_bar.Push (0, "Statusbar");
+			status_bar.Push (0, "Welcome to Kunor, mate.");
 
 			DestroyEvent += delegate (object o, DestroyEventArgs e) {
 				Console.WriteLine ("Catch Destroy Event");
