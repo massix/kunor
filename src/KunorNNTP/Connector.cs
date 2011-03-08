@@ -132,12 +132,12 @@ namespace Kunor.NNTP {
 		private int int_msg_id;
 
 		/* used when referencing a new post */
-		private string str_msg_id;
-		private string from;
-		private string subject;
-		private string date;
-		private int lines;
-		private string user_agent;
+		public string str_msg_id { get; private set; }
+		public string s_from { get; private set; }
+		public string subject { get; private set; }
+		public string date { get; private set; }
+		public int lines { get; private set; }
+		public string user_agent { get; private set; }
 
 		/* Create a new message from the given headers */
 		public Message (string header) {
@@ -146,7 +146,7 @@ namespace Kunor.NNTP {
 			/* Parsing of the headers */
 			for (int i = 0; i < headers_line.Length; i++) {
 				if (headers_line[i].StartsWith ("From: "))
-					from = headers_line[i];
+					s_from = headers_line[i].Replace ("From: ", "");
 
 				else if (headers_line[i].StartsWith ("Date: "))
 					date = headers_line[i];
@@ -158,13 +158,14 @@ namespace Kunor.NNTP {
 					user_agent = headers_line[i];
 
 				else if (headers_line[i].StartsWith ("Subject: "))
-					subject = headers_line[i];
+					subject = headers_line[i].Replace ("Subject: ", "");
+
 
 				else
 					Utils.PrintDebug (Utils.TAG_DEBUG, "Header not known: " + headers_line[i]);
 			}
 
-			Utils.PrintDebug (Utils.TAG_DEBUG, "Got new message from: " + from);
+			Utils.PrintDebug (Utils.TAG_DEBUG, "Got new message from: " + s_from);
 		}
 	}
 
