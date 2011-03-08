@@ -49,11 +49,13 @@ namespace Kunor.Client {
 
 			group_list_box.OnStartMessages += delegate (object o, NNTP.Group g) {
 				status_bar.Push (0, "Receiving messages for group " + g.name);
+				group_list_box.Sensitive = false;
 			};
 
 			group_list_box.OnGotMessages += delegate (object o, NNTP.MessageList m) {
 				message_list_box.SwitchMessageList (m);
 				status_bar.Push (0, "Done!");
+				group_list_box.Sensitive = true;
 			};
 
 			main_container.PackStart (status_bar, false, false, 0);

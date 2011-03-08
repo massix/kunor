@@ -38,7 +38,6 @@ namespace Kunor.Client {
 		public MessageListBox () {
 			HscrollbarPolicy = Gtk.PolicyType.Automatic;
 			VscrollbarPolicy = Gtk.PolicyType.Automatic;
-			ResizeMode = Gtk.ResizeMode.Immediate;
 
 			message_store = new Gtk.TreeStore (typeof (string), typeof (string), typeof (string));
 			message_view = new Gtk.TreeView ();
@@ -58,10 +57,20 @@ namespace Kunor.Client {
 			to_be_set = message_view.GetColumn ((int) Columns.COL_FROM);
 			to_be_set.Expand = false;
 
+			cell_renderer = new Gtk.CellRendererText () {
+				Editable = false,
+				Ellipsize = Pango.EllipsizeMode.Middle,
+				WrapWidth = -1
+			};
 			message_view.AppendColumn ("Subject", cell_renderer, "text", (int) Columns.COL_SUBJECT);
 			to_be_set = message_view.GetColumn ((int) Columns.COL_SUBJECT);
 			to_be_set.Expand = true;
 
+			cell_renderer = new Gtk.CellRendererText () {
+				Editable = false,
+				Ellipsize = Pango.EllipsizeMode.End,
+				WrapWidth = -1
+			};
 			message_view.AppendColumn ("Date", cell_renderer, "text", (int) Columns.COL_DATE);
 			to_be_set = message_view.GetColumn ((int) Columns.COL_DATE);
 			to_be_set.Expand = false;
@@ -70,9 +79,13 @@ namespace Kunor.Client {
 			ShowAll ();
 		}
 
+		/* Update the TreeView with the new messages */
 		public void SwitchMessageList (NNTP.MessageList new_message_list) {
 			msg_list = new_message_list;
-			Utils.PrintDebug (Utils.TAG_DEBUG, "Fuck the what?");
+			message_store.Clear ();
+			foreach (NNTP.Message message in msg_list) {
+				Gtk.TreeIter iter = message_store.AppendValues (message.s_from, message.subject, message.date);
+			}
 		}
 	}
 }

@@ -46,7 +46,6 @@ namespace Kunor.Client {
 			/* Set some default values for properties */
 			HscrollbarPolicy = Gtk.PolicyType.Automatic;
 			VscrollbarPolicy = Gtk.PolicyType.Automatic;
-			ResizeMode = Gtk.ResizeMode.Immediate;
 
 			g_list = new NNTP.GroupList ();
 			groups_store = new Gtk.ListStore (typeof (string), typeof (int));
@@ -73,6 +72,12 @@ namespace Kunor.Client {
 			to_be_set = groups_view.GetColumn ((int) Columns.COL_NAME);
 			to_be_set.Expand = true;
 
+			cell_renderer = new Gtk.CellRendererText () {
+				Editable = false,
+				Ellipsize = Pango.EllipsizeMode.None,
+				WrapWidth = -1
+			};
+
 			/* Second column is not resizable and doesn't get extra space */
 			groups_view.AppendColumn ("Unread", cell_renderer, "text", (int) Columns.COL_UNREAD);
 			to_be_set = groups_view.GetColumn ((int) Columns.COL_UNREAD);
@@ -92,15 +97,19 @@ namespace Kunor.Client {
 
 					/* Do this in background, avoiding freezing the main GUI */
 					new System.Threading.Thread (() => {
+							Gdk.Threads.Enter ();
 							/* Send the starting event */
 							if (OnStartMessages != null)
 								OnStartMessages (this, selected);
+							Gdk.Threads.Leave ();
 
 							NNTP.MessageList g_messagelist = selected.GetMessages ();
 
+							Gdk.Threads.Enter ();
 							/* Send the Event if the object has been referenced somewhere */
 							if (OnGotMessages != null)
 								OnGotMessages (this, g_messagelist);
+							Gdk.Threads.Leave ();
 						}).Start ();
 				}
 
