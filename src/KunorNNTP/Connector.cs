@@ -64,7 +64,6 @@ namespace Kunor.NNTP {
 			Write ();
 			while (true) {
 				tmp = ReadResponseLine ();
-				Utils.PrintDebug (Utils.TAG_DEBUG, "Response line contains: " + tmp);
 				/* Error occured while querying */
 				if (tmp.StartsWith ("500 What") || tmp.StartsWith ("501 Syntax"))
 					break;
