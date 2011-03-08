@@ -18,6 +18,7 @@
  */
 
 using System;
+using System.Threading;
 using Kunor.NNTP;
 using Gtk;
 using GLib;
@@ -29,12 +30,19 @@ namespace Kunor.Client {
 		private NNTP.GroupList g_list;
 		private Gtk.TreeView groups_view;
 		private Gtk.ListStore groups_store;
-		private Client.MainWindow partof;
 		private enum Columns {
 			COL_NAME, COL_UNREAD
 		};
 
-		public GroupListBox (MainWindow partof) : base () {
+		/* Event that will be triggered when the Object has finished receiving the messages for a group */
+		public delegate void GotMessagesEventHandler (System.Object sender, Group group);
+		public event GotMessagesEventHandler OnGotMessages;
+
+		/* Event that will be triggered when the Object starts receiving the messages for a group */
+		public delegate void StartMessagesEventHandler (System.Object sender, Group group);
+		public event StartMessagesEventHandler OnStartMessages;
+
+		public GroupListBox () : base () {
 			/* Set some default values for properties */
 			HscrollbarPolicy = Gtk.PolicyType.Automatic;
 			VscrollbarPolicy = Gtk.PolicyType.Automatic;
@@ -71,7 +79,7 @@ namespace Kunor.Client {
 			to_be_set.Expand = false;
 
 			/* Main event linked to the tree view */
-			groups_view.RowActivated += delegate (object o, RowActivatedArgs args) {
+			groups_view.RowActivated += delegate (System.Object o, RowActivatedArgs args) {
 				Gtk.TreeIter iter;
 				Utils.PrintDebug (Utils.TAG_DEBUG, "Double clicked row: " + args.Path);
 
@@ -82,7 +90,18 @@ namespace Kunor.Client {
 					NNTP.Group selected = g_list.FindByName (groupname.Replace ("u.c.", "unibo.cs."));
 					Utils.PrintDebug (Utils.TAG_DEBUG, "Got: " + selected.name);
 
-					NNTP.MessageList g_messagelist = selected.GetMessages ();
+					/* Do this in background, avoiding freezing the main GUI */
+					new System.Threading.Thread (() => {
+							/* Send the starting event */
+							if (OnStartMessages != null)
+								OnStartMessages (this, selected);
+
+							NNTP.MessageList g_messagelist = selected.GetMessages ();
+
+							/* Send the Event if the object has been referenced somewhere */
+							if (OnGotMessages != null)
+								OnGotMessages (this, selected);
+						}).Start ();
 				}
 
 				else

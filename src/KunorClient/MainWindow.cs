@@ -28,6 +28,7 @@ namespace Kunor.Client {
 		private Gtk.MenuBar main_menu;
 		private Gtk.HPaned middle_container;
 		private Gtk.Statusbar status_bar;
+		private Client.GroupListBox group_list_box;
 
 		/* Builds up the main GUI */
 		public MainWindow () : base ("Kunor") {
@@ -36,12 +37,21 @@ namespace Kunor.Client {
 			main_container = new Gtk.VBox (false, 2);
 			middle_container = new Gtk.HPaned ();
 			status_bar = new Gtk.Statusbar ();
+			group_list_box = new Client.GroupListBox ();
 
 			main_container.PackStart (main_menu, false, false, 0);
 
 			main_container.PackStart (middle_container);
-			middle_container.Add1 (new GroupListBox (this));
+			middle_container.Add1 (group_list_box);
 			middle_container.Add2 (new Gtk.Label ("Child 2"));
+
+			group_list_box.OnStartMessages += delegate (object o, NNTP.Group g) {
+				Utils.PrintDebug (Utils.TAG_DEBUG, "Started receiving messages for group " + g.name);
+			};
+
+			group_list_box.OnGotMessages += delegate (object o, NNTP.Group g) {
+				Utils.PrintDebug (Utils.TAG_DEBUG, "Got messages for group " + g.name);
+			};
 
 			main_container.PackStart (status_bar, false, false, 0);
 			status_bar.Push (0, "Statusbar");
