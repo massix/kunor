@@ -46,12 +46,22 @@ dnl AC_SUBST(GETTEXT_PACKAGE)
 dnl AM_GLIB_GNU_GETTEXT
 
 GTK_SHARP_REQUIRED=2.12.10
+NOTIFY_SHARP_REQUIRED=0.4.0
 
 PKG_CHECK_MODULES(GTK_SHARP_2, gtk-sharp-2.0 >= $GTK_SHARP_REQUIRED)
+PKG_CHECK_MODULES(NOTIFY_SHARP, notify-sharp >= $NOTIFY_SHARP_REQUIRED)
 
-OS_CFLAGS=-d:DEBUG_ON
+AC_ARG_ENABLE(debug,
+	AC_HELP_STRING([--enable-debug],
+		[Use 'Debug' Configuration [default=NO]]),
+		enable_debug=yes, enable_debug=no)
+AM_CONDITIONAL(ENABLE_DEBUG, test x$enable_debug = xyes)
+if test "x$enable_debug" = "xyes" ; then
+   OS_CFLAGS=-d:DEBUG_ON
+fi
 
 AC_SUBST(GTK_SHARP_2_LIBS)
+AC_SUBST(NOTIFY_SHARP_REQUIRED)
 AC_SUBST(OS_CFLAGS)
 
 AC_CONFIG_FILES([
