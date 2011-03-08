@@ -29,6 +29,11 @@ namespace Kunor {
 
 			Utils.PrintDebug (Utils.TAG_DEBUG, "DEBUG IS ON");
 			string[] result = new string[2];
+
+			/* Init GLib and Gdk Threads */
+			GLib.Thread.Init ();
+			Gdk.Threads.Init ();
+
 			Application.Init ();
 			try {
 				NNTP.Connector mainConnector = NNTP.Connector.GetInstance ();
