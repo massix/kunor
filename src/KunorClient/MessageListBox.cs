@@ -44,10 +44,12 @@ namespace Kunor.Client {
 
 			message_view.Model = message_store;
 			message_view.HeadersVisible = true;
+			message_view.RulesHint = true;
 
 			Gtk.CellRendererText cell_renderer = new Gtk.CellRendererText () {
 				Editable = false,
 				Ellipsize = Pango.EllipsizeMode.None,
+				Height = 25,
 				WrapWidth = -1
 			};
 
@@ -56,24 +58,29 @@ namespace Kunor.Client {
 			message_view.AppendColumn ("From", cell_renderer, "text", (int) Columns.COL_FROM);
 			to_be_set = message_view.GetColumn ((int) Columns.COL_FROM);
 			to_be_set.Expand = false;
+			to_be_set.Resizable = true;
 
 			cell_renderer = new Gtk.CellRendererText () {
 				Editable = false,
 				Ellipsize = Pango.EllipsizeMode.Middle,
+				Height = 25,
 				WrapWidth = -1
 			};
 			message_view.AppendColumn ("Subject", cell_renderer, "text", (int) Columns.COL_SUBJECT);
 			to_be_set = message_view.GetColumn ((int) Columns.COL_SUBJECT);
 			to_be_set.Expand = true;
+			to_be_set.Resizable = true;
 
 			cell_renderer = new Gtk.CellRendererText () {
 				Editable = false,
 				Ellipsize = Pango.EllipsizeMode.End,
+				Height = 25,
 				WrapWidth = -1
 			};
 			message_view.AppendColumn ("Date", cell_renderer, "text", (int) Columns.COL_DATE);
 			to_be_set = message_view.GetColumn ((int) Columns.COL_DATE);
 			to_be_set.Expand = false;
+			to_be_set.Resizable = true;
 
 			AddWithViewport (message_view);
 			ShowAll ();
@@ -85,7 +92,14 @@ namespace Kunor.Client {
 			message_store.Clear ();
 			foreach (NNTP.Message message in msg_list) {
 				Gtk.TreeIter iter = message_store.AppendValues (message.s_from, message.subject, message.date);
+				if (message.has_children) {
+					foreach (NNTP.Message children in message.children) {
+						message_store.AppendValues (iter, children.s_from, children.subject, children.date);
+					}
+				}
+
 			}
 		}
 	}
 }
+
