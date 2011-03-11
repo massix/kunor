@@ -126,7 +126,7 @@ namespace Kunor.NNTP {
 	}
 
 
-	/* Class holding a single message */
+	/* Class holding a single message and its children */
 	public class Message {
 		/* used to retrieve the message from the listgroup NNTP command */
 		private int int_msg_id;
@@ -138,6 +138,29 @@ namespace Kunor.NNTP {
 		public string date { get; private set; }
 		public int lines { get; private set; }
 		public string user_agent { get; private set; }
+		public string[] refers { get; private set; }
+
+		/* Holds the messages that refer to this one */
+		public List<Message> children { get; private set; }
+
+		/* Some read-only properties */
+		public bool has_children {
+			get {
+				return (children != null);
+			}
+			private set {
+				/* Do nothing */
+			}
+		}
+
+		public bool has_refers {
+			get {
+				return (refers != null);
+			}
+			private set {
+				/* Do nothing */
+			}
+		}
 
 		/* Create a new message from the given headers */
 		public Message (string header) {
@@ -149,29 +172,43 @@ namespace Kunor.NNTP {
 					s_from = headers_line[i].Replace ("From: ", "");
 
 				else if (headers_line[i].StartsWith ("Date: "))
-					date = headers_line[i];
+					date = headers_line[i].Replace ("Date: ", "");
 
 				else if (headers_line[i].StartsWith ("Message-ID: "))
-					str_msg_id = headers_line[i];
+					str_msg_id = headers_line[i].Replace ("Message-ID: ", "");
 
 				else if (headers_line[i].StartsWith ("User-Agent: "))
-					user_agent = headers_line[i];
+					user_agent = headers_line[i].Replace ("User-Agent: ", "");
 
 				else if (headers_line[i].StartsWith ("Subject: "))
 					subject = headers_line[i].Replace ("Subject: ", "");
 
-
-				else
-					Utils.PrintDebug (Utils.TAG_DEBUG, "Header not known: " + headers_line[i]);
+				else if (headers_line[i].StartsWith ("References: "))
+					refers = headers_line[i].Replace ("References: ", "").Split (' ');
 			}
 
 			Utils.PrintDebug (Utils.TAG_DEBUG, "Got new message from: " + s_from);
+			Utils.PrintDebug (Utils.TAG_DEBUG, "  ID: " + str_msg_id);
+			if (has_refers) {
+				Utils.PrintDebug (Utils.TAG_DEBUG, "  REFERS ");
+				for (int i = 0; i < refers.Length; i++)
+					Utils.PrintDebug (Utils.TAG_DEBUG, "    [" + i + "] " + refers[i]);
+			}
+		}
+
+		public void AppendChild (Message m) {
+			if (children == null)
+				children = new List<Message> ();
+
+			children.Add (m);
 		}
 	}
 
 
 	/* Class which creates and holds the references to the messages */
 	public class MessageList : System.Collections.Generic.List<Message> {
+		private int totMessages;
+		private int retrieved;
 
 		/* Build a new MessageList referred to the given newsgroup */
 		public MessageList (string groupname) {
@@ -184,14 +221,33 @@ namespace Kunor.NNTP {
 			/* Get the messages */
 			string message_resp = instance.WriteAndRead ("LISTGROUP " + groupname);
 			string[] messages = message_resp.Split ('\n');
+			totMessages = messages.Length;
+			retrieved = 0;
+			int toRetrieve = messages.Length < 100? messages.Length : 100;
 
-			for (int i = 1; i < messages.Length; i++) {
+			for (int i = messages.Length - toRetrieve; i < messages.Length ; i++) {
 				string headers = instance.WriteAndRead ("HEAD " + messages[i].Trim ());
-				Add (new Message (headers));
+				Message to_be_added = new Message (headers);
+
+				/* It is not a root message, we should find its father */
+				if (to_be_added.has_refers) {
+					Utils.PrintDebug (Utils.TAG_DEBUG, "  Looking for father");
+					Message father = Find ((Message msg) => {
+							return (msg.str_msg_id.Trim () == to_be_added.refers[0].Trim ());
+						});
+
+					if (father != null) {
+						Utils.PrintDebug (Utils.TAG_DEBUG, "  Found father");
+						father.AppendChild (to_be_added);
+						continue;
+					}
+				}
+
+				/* Add it as a root message */
+				Add (to_be_added);
 			}
 		}
 	}
-
 
 	/* Class holding a single group */
 	public class Group {
