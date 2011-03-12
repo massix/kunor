@@ -34,6 +34,13 @@ namespace Kunor.Client {
 			COL_FROM, COL_SUBJECT, COL_DATE
 		};
 
+		/* Events */
+		public delegate void MessageRetrieveStartHandler (System.Object self);
+		public event MessageRetrieveStartHandler OnMessageRetrieveStart;
+
+		public delegate void MessageRetrieveFinishedHandler (System.Object self, Message m);
+		public event MessageRetrieveFinishedHandler OnMessageRetrieveFinished;
+
 		/* By default, the MessageListBox doesn't hold any messages */
 		public MessageListBox () {
 			HscrollbarPolicy = Gtk.PolicyType.Automatic;
@@ -80,15 +87,19 @@ namespace Kunor.Client {
 			to_be_set.Expand = false;
 
 			message_view.RowActivated += delegate (System.Object o, RowActivatedArgs args) {
+				if (OnMessageRetrieveStart != null)
+					OnMessageRetrieveStart (this);
 				int depth = args.Path.Depth;
 				int[] indices = args.Path.Indices;
 				Message father = msg_list[indices[0]];
 				if (depth < 2) {
-					father.RetrieveBody ();
+					if (OnMessageRetrieveFinished != null)
+						OnMessageRetrieveFinished (this, father);
 				}
 				else {
 					Message children = father.children[indices[1]];
-					children.RetrieveBody ();
+					if (OnMessageRetrieveFinished != null)
+						OnMessageRetrieveFinished (this, children);
 				}
 			};
 

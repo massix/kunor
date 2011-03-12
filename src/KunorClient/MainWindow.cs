@@ -27,9 +27,11 @@ namespace Kunor.Client {
 		private Gtk.VBox main_container;
 		private Gtk.MenuBar main_menu;
 		private Gtk.HPaned middle_container;
+		private Gtk.VPaned right_paned;
 		private Gtk.Statusbar status_bar;
 		private Client.GroupListBox group_list_box;
 		private Client.MessageListBox message_list_box;
+		private Client.MessageViewBox message_view_box;
 
 		/* Builds up the main GUI */
 		public MainWindow () : base ("Kunor") {
@@ -37,25 +39,39 @@ namespace Kunor.Client {
 
 			main_container = new Gtk.VBox (false, 2);
 			middle_container = new Gtk.HPaned ();
+			right_paned = new Gtk.VPaned ();
 			status_bar = new Gtk.Statusbar ();
 			group_list_box = new Client.GroupListBox ();
 			message_list_box = new Client.MessageListBox ();
+			message_view_box = new Client.MessageViewBox ();
 
 			main_container.PackStart (main_menu, false, false, 0);
 
 			main_container.PackStart (middle_container);
 			middle_container.Add1 (group_list_box);
-			middle_container.Add2 (message_list_box);
+			right_paned.Add1 (message_list_box);
+			right_paned.Add2 (message_view_box);
+			middle_container.Add2 (right_paned);
 
 			group_list_box.OnStartMessages += delegate (object o, NNTP.Group g) {
 				status_bar.Push (0, "Receiving messages for group " + g.name);
 				group_list_box.Sensitive = false;
+				message_view_box.Clear ();
 			};
 
 			group_list_box.OnGotMessages += delegate (object o, NNTP.MessageList m) {
 				message_list_box.SwitchMessageList (m);
 				status_bar.Push (0, "Done!");
 				group_list_box.Sensitive = true;
+			};
+
+			message_list_box.OnMessageRetrieveStart += delegate (object o) {
+				status_bar.Push (0, "Getting message");
+			};
+
+			message_list_box.OnMessageRetrieveFinished += delegate (object o, NNTP.Message m) {
+				message_view_box.ShowMessage (m);
+				status_bar.Push (0, "Showing message");
 			};
 
 			main_container.PackStart (status_bar, false, false, 0);
