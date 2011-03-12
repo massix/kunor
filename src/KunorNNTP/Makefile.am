@@ -1,4 +1,8 @@
-NNTP_SRCS = Connector.cs Constants.cs Exceptions.cs
+NNTP_SRCS =		Connector.cs \
+				Constants.cs \
+				Exceptions.cs \
+				MessagesConnector.cs \
+				GroupsConnector.cs
 
 LIBRARY = KunorNNTP.dll
 librarydir = ${datadir}/${PACKAGE_NAME}/
