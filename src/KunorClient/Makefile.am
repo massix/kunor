@@ -7,7 +7,7 @@ librarydir = ${datadir}/${PACKAGE_NAME}/
 library_DATA = ${LIBRARY}
 CLEANFILES = ${LIBRARY}
 
-GMCS_FLAGS = -t:library ${DEPS} ${OS_CFLAGS} -out:KunorClient.dll
+GMCS_FLAGS = -t:library ${DEPS} ${OS_CFLAGS} -out:${LIBRARY}
 
 all: ${LIBRARY}
 

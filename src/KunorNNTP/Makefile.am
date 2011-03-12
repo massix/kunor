@@ -9,7 +9,7 @@ librarydir = ${datadir}/${PACKAGE_NAME}/
 library_DATA = ${LIBRARY}
 CLEANFILES = ${LIBRARY}
 
-GMCS_FLAGS = -t:library -out:${LIBRARY}
+GMCS_FLAGS = -t:library --timestamp -out:${LIBRARY}
 UTILS_FILE = ../Utils.cs
 
 all: ${LIBRARY}

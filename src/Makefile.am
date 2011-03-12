@@ -13,7 +13,7 @@ LIBS = 	-r:KunorNNTP/KunorNNTP.dll \
 
 CLEANFILES = ${PROGRAM}
 
-GMCS_FLAGS = -t:exe ${LIBS} ${OS_CFLAGS}
+GMCS_FLAGS = --timestamp -t:exe ${LIBS} ${OS_CFLAGS}
 
 all: ${SUBDIRS} ${PROGRAM}
 
