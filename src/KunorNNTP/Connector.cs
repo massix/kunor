@@ -20,6 +20,7 @@
 using Kunor;
 using System;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
@@ -136,6 +137,7 @@ namespace Kunor.NNTP {
 		public string s_from { get; private set; }
 		public string subject { get; private set; }
 		public string date { get; private set; }
+		public DateTime date_time { get; private set; }
 		public int lines { get; private set; }
 		public string user_agent { get; private set; }
 		public string[] refers { get; private set; }
@@ -163,16 +165,39 @@ namespace Kunor.NNTP {
 		}
 
 		/* Create a new message from the given headers */
-		public Message (string header) {
+		public Message (int id, string header) {
 			string[] headers_line = header.Split ('\n');
+			int_msg_id = id;
 
 			/* Parsing of the headers */
 			for (int i = 0; i < headers_line.Length; i++) {
-				if (headers_line[i].StartsWith ("From: "))
+				if (headers_line[i].StartsWith ("From: ")) {
+					Regex classic_email_field = new Regex ("<[A-z0-9]*@.*>");
+					Regex cs_email_field = new Regex ("[A-z0-9]*@cs.unibo.it");
 					s_from = headers_line[i].Replace ("From: ", "");
+					s_from = classic_email_field.Replace (s_from, "");
+					s_from = cs_email_field.Replace (s_from, "");
+					s_from = s_from.Replace ("(", "");
+					s_from = s_from.Replace (")", "");
+					s_from = s_from.Trim ();
+				}
 
-				else if (headers_line[i].StartsWith ("Date: "))
-					date = headers_line[i].Replace ("Date: ", "");
+				else if (headers_line[i].StartsWith ("Date: ")) {
+					date = headers_line[i].Replace ("Date: ", "").Replace ("(UTC)", "");
+					try {
+						date_time = DateTime.Parse (date.Trim ());
+						Utils.PrintDebug (Utils.TAG_DEBUG, "Able to get date from: " + date);
+						date = date_time.ToString ("dd.MM.yy");
+					}
+					catch (ArgumentNullException e) {
+						Utils.PrintDebug (Utils.TAG_ERROR, "Date is null");
+						date = "Null";
+					}
+					catch (FormatException e) {
+						Utils.PrintDebug (Utils.TAG_ERROR, "Not a valid format for Date: " + date);
+						date = "N/A";
+					}
+				}
 
 				else if (headers_line[i].StartsWith ("Message-ID: "))
 					str_msg_id = headers_line[i].Replace ("Message-ID: ", "");
@@ -207,11 +232,9 @@ namespace Kunor.NNTP {
 
 	/* Class which creates and holds the references to the messages */
 	public class MessageList : System.Collections.Generic.List<Message> {
-		private int totMessages;
-		private int retrieved;
 
 		/* Build a new MessageList referred to the given newsgroup */
-		public MessageList (string groupname) {
+		public MessageList (string groupname, int low, int hi) {
 			Connector instance = Connector.GetInstance ();
 
 			/* Switch to the given group or throw exception if it didn't exist */
@@ -219,21 +242,21 @@ namespace Kunor.NNTP {
 				throw new NNTPConnectorException ("Group doesn't exist");
 
 			/* Get the messages */
-			string message_resp = instance.WriteAndRead ("LISTGROUP " + groupname);
+			string range = low + "-" + hi;
+			string message_resp = instance.WriteAndRead ("LISTGROUP " + groupname + " " + range);
 			string[] messages = message_resp.Split ('\n');
-			totMessages = messages.Length;
-			retrieved = 0;
-			int toRetrieve = messages.Length < 100? messages.Length : 100;
 
-			for (int i = messages.Length - toRetrieve; i < messages.Length ; i++) {
+			for (int i = 1; i < messages.Length; i++) {
 				string headers = instance.WriteAndRead ("HEAD " + messages[i].Trim ());
-				Message to_be_added = new Message (headers);
+				Message to_be_added = new Message (i, headers);
 
 				/* It is not a root message, we should find its father */
 				if (to_be_added.has_refers) {
 					Utils.PrintDebug (Utils.TAG_DEBUG, "  Looking for father");
 					Message father = Find ((Message msg) => {
-							return (msg.str_msg_id.Trim () == to_be_added.refers[0].Trim ());
+							if (msg.str_msg_id != null)
+								return (msg.str_msg_id.Trim () == to_be_added.refers[0].Trim ());
+							return false;
 						});
 
 					if (father != null) {
@@ -243,8 +266,9 @@ namespace Kunor.NNTP {
 					}
 				}
 
-				/* Add it as a root message */
-				Add (to_be_added);
+				/* Add it as a root message if it is a valid message */
+				if (to_be_added.str_msg_id != null)
+					Add (to_be_added);
 			}
 		}
 	}
@@ -255,7 +279,11 @@ namespace Kunor.NNTP {
 		public int hi { get; private set; }
 		public int low { get; private set; }
 		public char status { get; private set; }
+		public int lastRetrieved { get; private set; }
+		private readonly int BULK = 50;
+		private int count;
 		private MessageList messages;
+		private MessageList[] older_messages;
 
 		/* Build a new group */
 		public Group (string g_name, int g_hi, int g_low, char g_status) {
@@ -263,12 +291,35 @@ namespace Kunor.NNTP {
 			hi = g_hi;
 			low = g_low;
 			status = g_status;
+			lastRetrieved = -1;
+			count = 0;
 		}
 
 		/* Get the MessageList of that group */
-		public MessageList GetMessages () {
-			if (messages == null)
-				messages = new MessageList (name);
+		public MessageList GetMessages (bool older) {
+			/* First retrieve */
+			if (messages == null) {
+				if ((hi - low) < BULK) {
+					lastRetrieved = low;
+					messages = new MessageList (name, low, hi);
+				}
+				else  {
+					lastRetrieved = hi - BULK;
+					messages = new MessageList (name, lastRetrieved, hi);
+				}
+			}
+
+			/* We can get older messages and the user wants to. */
+			else if (lastRetrieved != low && older) {
+				if ((lastRetrieved - low) > BULK) {
+					older_messages[count++] = new MessageList (name, lastRetrieved - BULK, lastRetrieved);
+					lastRetrieved -= BULK;
+				}
+				else {
+					older_messages[count++] = new MessageList (name, low, lastRetrieved);
+					lastRetrieved = low;
+				}
+			}
 
 			return messages;
 		}
