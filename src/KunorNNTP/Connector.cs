@@ -58,13 +58,13 @@ namespace Kunor.NNTP {
 		}
 
 		/* This is the public method that writes and reads */
-		public string WriteAndRead (string message) {
+		public string WriteAndRead (string message, string encoding = "UTF-8") {
 			string response = "";
 			string tmp = "";
 			lastMessage = message + " \r\n";
 			Write ();
 			while (true) {
-				tmp = ReadResponseLine ();
+				tmp = ReadResponseLine (encoding);
 				/* Error occured while querying */
 				if (tmp.StartsWith ("500 What") || tmp.StartsWith ("501 Syntax"))
 					break;
@@ -80,12 +80,14 @@ namespace Kunor.NNTP {
 		}
 
 		/* This is similar to the WriteAndRead but it's specific for getting bodies of articles */
-		public string GetArticleBody (int message_id) {
+		public string GetArticleBody (int message_id, string encoding = "ISO-8859-15") {
 			string response = "";
 			lastMessage = "BODY " + message_id.ToString () + " \r\n";
 			Write ();
+			if (!ReadResponseLine (encoding).StartsWith ("222"))
+				return ("Could not retrieve BODY of article " + message_id.ToString ()).Trim ();
 			while (true) {
-				string tmp = ReadResponseLine ();
+				string tmp = ReadResponseLine (encoding);
 				if (tmp == ".\r\n" || tmp == ".\n")
 					break;
 				response += tmp;
@@ -113,8 +115,8 @@ namespace Kunor.NNTP {
 		}
 
 		/* Reads the received response */
-		private string ReadResponseLine () {
-			UTF8Encoding enc = new UTF8Encoding ();
+		private string ReadResponseLine (string encoding = "UTF-8") {
+			Encoding enc = Encoding.GetEncoding (encoding);
 			byte[] response = new byte[2048];
 			int count = 0;
 

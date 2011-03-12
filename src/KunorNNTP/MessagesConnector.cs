@@ -41,6 +41,7 @@ namespace Kunor.NNTP {
 		public DateTime date_time { get; private set; }
 		public int lines { get; private set; }
 		public string user_agent { get; private set; }
+		public string encoding { get; private set; }
 		public string[] refers { get; private set; }
 
 		/* article body */
@@ -114,10 +115,15 @@ namespace Kunor.NNTP {
 
 				else if (headers_line[i].StartsWith ("References: "))
 					refers = headers_line[i].Replace ("References: ", "").Split (' ');
+
+				else if (headers_line[i].StartsWith ("Content-Type: ")) {
+					encoding = headers_line[i].Split (';')[1].Replace (";", "").Split('=')[1].Trim ();
+				}
 			}
 
 			Utils.PrintDebug (Utils.TAG_DEBUG, "Got new message from: " + s_from);
 			Utils.PrintDebug (Utils.TAG_DEBUG, "  ID: " + str_msg_id);
+			Utils.PrintDebug (Utils.TAG_DEBUG, "  Encoding: " + encoding);
 			if (has_refers) {
 				Utils.PrintDebug (Utils.TAG_DEBUG, "  REFERS ");
 				for (int i = 0; i < refers.Length; i++)
@@ -128,7 +134,7 @@ namespace Kunor.NNTP {
 		public void RetrieveBody () {
 			if (body == null) {
 				Connector instance = Connector.GetInstance ();
-				body = instance.GetArticleBody (int_msg_id);
+				body = instance.GetArticleBody (int_msg_id, encoding);
 				Utils.PrintDebug (Utils.TAG_DEBUG, " ==== BODY ====\n" + body);
 				Utils.PrintDebug (Utils.TAG_DEBUG, " ============== ");
 			}
