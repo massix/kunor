@@ -103,7 +103,7 @@ namespace Kunor.Client {
 								OnStartMessages (this, selected);
 							Gdk.Threads.Leave ();
 
-							NNTP.MessageList g_messagelist = selected.GetMessages ();
+							NNTP.MessageList g_messagelist = selected.GetMessages (false);
 
 							Gdk.Threads.Enter ();
 							/* Send the Event if the object has been referenced somewhere */

@@ -58,29 +58,26 @@ namespace Kunor.Client {
 			message_view.AppendColumn ("From", cell_renderer, "text", (int) Columns.COL_FROM);
 			to_be_set = message_view.GetColumn ((int) Columns.COL_FROM);
 			to_be_set.Expand = false;
-			to_be_set.Resizable = true;
 
 			cell_renderer = new Gtk.CellRendererText () {
 				Editable = false,
-				Ellipsize = Pango.EllipsizeMode.Middle,
+				Ellipsize = Pango.EllipsizeMode.None,
 				Height = 25,
 				WrapWidth = -1
 			};
 			message_view.AppendColumn ("Subject", cell_renderer, "text", (int) Columns.COL_SUBJECT);
 			to_be_set = message_view.GetColumn ((int) Columns.COL_SUBJECT);
 			to_be_set.Expand = true;
-			to_be_set.Resizable = true;
 
 			cell_renderer = new Gtk.CellRendererText () {
 				Editable = false,
-				Ellipsize = Pango.EllipsizeMode.End,
+				Ellipsize = Pango.EllipsizeMode.None,
 				Height = 25,
 				WrapWidth = -1
 			};
 			message_view.AppendColumn ("Date", cell_renderer, "text", (int) Columns.COL_DATE);
 			to_be_set = message_view.GetColumn ((int) Columns.COL_DATE);
 			to_be_set.Expand = false;
-			to_be_set.Resizable = true;
 
 			AddWithViewport (message_view);
 			ShowAll ();
