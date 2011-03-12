@@ -79,6 +79,19 @@ namespace Kunor.Client {
 			to_be_set = message_view.GetColumn ((int) Columns.COL_DATE);
 			to_be_set.Expand = false;
 
+			message_view.RowActivated += delegate (System.Object o, RowActivatedArgs args) {
+				int depth = args.Path.Depth;
+				int[] indices = args.Path.Indices;
+				Message father = msg_list[indices[0]];
+				if (depth < 2) {
+					father.RetrieveBody ();
+				}
+				else {
+					Message children = father.children[indices[1]];
+					children.RetrieveBody ();
+				}
+			};
+
 			AddWithViewport (message_view);
 			ShowAll ();
 		}
