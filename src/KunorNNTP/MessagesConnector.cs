@@ -74,6 +74,9 @@ namespace Kunor.NNTP {
 			string[] headers_line = header.Split ('\n');
 			int_msg_id = id;
 
+			/* Set some default values */
+			encoding = "ISO-8859-15";
+
 			/* Parsing of the headers */
 			for (int i = 0; i < headers_line.Length; i++) {
 				if (headers_line[i].StartsWith ("From: ")) {
@@ -118,6 +121,8 @@ namespace Kunor.NNTP {
 
 				else if (headers_line[i].StartsWith ("Content-Type: ")) {
 					encoding = headers_line[i].Split (';')[1].Replace (";", "").Split('=')[1].Trim ();
+					if (encoding.Trim () == "" || encoding == null)
+						encoding = "ISO-8859-15";
 				}
 			}
 

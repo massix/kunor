@@ -81,8 +81,6 @@ namespace Kunor.NNTP {
 
 		/* This is similar to the WriteAndRead but it's specific for getting bodies of articles */
 		public string GetArticleBody (int message_id, string encoding = "ISO-8859-15") {
-			if (encoding == "")
-				encoding = "ISO-8859-15";
 			string response = "";
 			lastMessage = "BODY " + message_id.ToString () + " \r\n";
 			Write ();
